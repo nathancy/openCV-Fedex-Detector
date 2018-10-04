@@ -8,7 +8,7 @@ from time import sleep
 purple = ([120,45,45], [150,255,255])
 red = ([0,130,0], [15,255,255])
 
-# Returns the bounding box coordinates of the largest contour found for a given color threshold (x,y,w,h)
+# Returns the bounding box coordinates and center coordinates of the largest contour found for a given color threshold (x,y,w,h,cX,cY)
 # If no bounding box is found, returns None
 def findBoundingBox(color, frame):
     lower = np.array(color[0], np.uint8)
@@ -34,18 +34,25 @@ def findBoundingBox(color, frame):
     else:
         return None
 
-# Finds top left x and y coordinates, width, and heights from those coordinates
-# since cv2.rectangle takes (x, y, w, h) as parameter
+# Given two contours, creates a single bounding box
+# Finds top left x and y coordinates, width, and height
+# 
+# (x,y)       w
+#   ._____________________.
+#   |                     |  
+#   |                     |  h
+#   |                     |  
+#   ._____________________.
+#
 def combineBoundingBox(box1, box2):
-    top_left_x = min(box1[0], box2[0])
-    #print('top_left_x is ' + str(top_left_x))
-    top_left_y = min(box1[1], box2[1])
+    x = min(box1[0], box2[0])
+    y = min(box1[1], box2[1])
     w = box2[0] + box2[2] - box1[0]
-    h = max(box1[1] + box1[3], box2[1] + box2[3])- top_left_y
-    return (top_left_x, top_left_y, w, h)
+    h = max(box1[1] + box1[3], box2[1] + box2[3]) - y
+    return (x, y, w, h)
+
 
 def showBoundingBox(x, y, w, h, frame, color):
-    #(0,255,0)
     detected_image = cv2.rectangle(frame, (x, y), (x + w, y + h), color,3)
     cv2.putText(detected_image, 'Fedex', (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (100,255,100), 2)
     showFrame(detected_image)
@@ -59,33 +66,38 @@ def boxesAdjacent(box1, box2, contour1, contour2, frame):
     coordinate_high = (x, y + box2[3]/2)
     coordinates = [coordinate_low, coordinate_mid, coordinate_high]
 
-    cv2.circle(frame, coordinate_mid, 2, (100,255,100),2)
-    cv2.circle(frame, coordinate_low, 2, (100,255,100),2)
-    cv2.circle(frame, coordinate_high, 2, (100,255,100),2)
+    #cv2.circle(frame, coordinate_mid, 2, (100,255,100),2)
+    #cv2.circle(frame, coordinate_low, 2, (100,255,100),2)
+    #cv2.circle(frame, coordinate_high, 2, (100,255,100),2)
     cv2.circle(frame, (box1[4],box1[5]), 2, (255,255,255), 20)
     cv2.circle(frame, (box2[4],box2[5]), 2, (0,255,0), 20)
 
-    box1 = showBoundingBox(box1[0], box1[1], box1[2], box1[3], frame.copy(), (255,255,255))
-    showBoundingBox(box2[0], box2[1], box2[2], box2[3], box1, (0,255,0))
+    #box1 = showBoundingBox(box1[0], box1[1], box1[2], box1[3], frame.copy(), (255,255,255))
+    #showBoundingBox(box2[0], box2[1], box2[2], box2[3], box1, (0,255,0))
 
     shape_comparison = cv2.matchShapes(contour1, contour2, 1, 0)
-    print(shape_comparison)
+    #print(shape_comparison)
     if shape_comparison <= 10:
         for coordinate in coordinates:
             if cv2.pointPolygonTest(contour2, coordinate, False) >= 0:
                 return True
     return False
-        
-def errorChecker(box1):
+       
+# Additional checks to ensure identification is not a false positive
+def errorChecker(box1, box2):
+    print("Possible match...")
+    # Ensure width of box is greater than a certain amount
+    if box1[2] < 30 or box2[2] < 30:
+        return False
+    # Ensure the truck is not moving (doesn't move more than a certain pixel range)
     initial_point = box1[0]
-    sleep(2)
-    with mss.mss() as sct:
-        monitor = {'top': 0, 'left': 0, 'width': 1920, 'height': 1080}
-        frame = np.array(sct.grab(monitor))
-        new_box = findBoundingBox(purple, frame)
-        new_point = abs(new_box[0] - initial_point)
-        return True if new_point < 50 else False 
+    sleep(5)
+    ret, frame = cap.read()
+    new_box = findBoundingBox(purple, frame)
+    new_point = abs(new_box[0] - initial_point)
+    return True if new_point < 50 else False 
 
+# Show the frame to the screen
 def showFrame(frame):
     cv2.imshow("frame", frame)
     key = cv2.waitKey(1)
@@ -93,27 +105,28 @@ def showFrame(frame):
         cap.release()
         cv2.destroyAllWindows()
         exit(1)
-    
-    
-with mss.mss() as sct:
-    while(True):
-        monitor = {'top': 0, 'left': 0, 'width': 1920, 'height': 1080}
-        frame = np.array(sct.grab(monitor))
-        cv2.circle(frame, (0,0), 2, (100,255,100),2)
-        cv2.circle(frame, (50,0), 2, (100,255,100),2)
-        box1 = findBoundingBox(purple, frame)
-        box2 = findBoundingBox(red, frame)
-        if box1 and box2:
-            if boxesAdjacent(box1, box2, box1[6], box2[6], frame):
-                #box1 = showBoundingBox(box1[0], box1[1], box1[2], box1[3], frame, (288,80,36))
-                #showBoundingBox(box2[0], box2[1], box2[2], box2[3], box1, (175,150,150))
-                if errorChecker(box1):
-                    points = combineBoundingBox(box1, box2)
-                    showBoundingBox(points[0], points[1], points[2], points[3], frame, (0,255,0))
-                    print("fedex here")
-                    cv2.waitKey(0)
-            else:
-                showFrame(frame)
+
+#stream = urllib.urlopen('http://spectrum:sagnacManoa@67.53.214.22:8080/++video?cameraNum=8&width=1125&height=750&78611')
+stream = 'rtsp://admin:sagnac808@192.168.1.46:554/cam/realmonitor?channel=1&subtype=0'
+cap = cv2.VideoCapture(stream)
+cv2.namedWindow("frame", 0)
+cv2.resizeWindow("frame", 1600,900)
+
+while(cap.isOpened()):
+    ret, frame = cap.read()
+    showFrame(frame)
+    box1 = findBoundingBox(purple, frame)
+    box2 = findBoundingBox(red, frame)
+    if box1 and box2:
+        if boxesAdjacent(box1, box2, box1[6], box2[6], frame):
+            #box1 = showBoundingBox(box1[0], box1[1], box1[2], box1[3], frame, (288,80,36))
+            #showBoundingBox(box2[0], box2[1], box2[2], box2[3], box1, (175,150,150))
+            if errorChecker(box1,box2):
+                points = combineBoundingBox(box1, box2)
+                showBoundingBox(points[0], points[1], points[2], points[3], frame, (0,255,0))
+                print("Fedex here")
+                cv2.waitKey(0)
         else:
             showFrame(frame)
-
+    else:
+        showFrame(frame)
