@@ -36,17 +36,20 @@ class imageDetector:
         lower = np.array(color[0], np.uint8)
         upper = np.array(color[1], np.uint8)
 
-        blurred = cv2.GaussianBlur(frame, (5,5), 0)
-        kernel = np.ones((5,5), np.uint8)
-        erosion = cv2.erode(blurred, kernel, iterations = 1)
-        dilation = cv2.dilate(erosion, kernel, iterations = 1)
-        frame_hsv = cv2.cvtColor(dilation, cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(frame_hsv, lower, upper)
-        #cv2.imshow("images", mask)
-        #cv2.waitKey(0)
-        #return
+        try:
+            blurred = cv2.GaussianBlur(frame, (5,5), 0)
+            kernel = np.ones((5,5), np.uint8)
+            erosion = cv2.erode(blurred, kernel, iterations = 1)
+            dilation = cv2.dilate(erosion, kernel, iterations = 1)
+            frame_hsv = cv2.cvtColor(dilation, cv2.COLOR_BGR2HSV)
+            mask = cv2.inRange(frame_hsv, lower, upper)
+            #cv2.imshow("images", mask)
+            #cv2.waitKey(0)
+            #return
 
-        im2, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            im2, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        except cv2.error:
+            return None
 
         contour_sizes = [(cv2.contourArea(contour), contour) for contour in contours]
         if len(contour_sizes) > 0:
