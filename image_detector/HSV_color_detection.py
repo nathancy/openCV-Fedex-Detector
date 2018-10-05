@@ -10,6 +10,7 @@ def nothing(*arg):
 #icol = (18, 0, 196, 36, 255, 255)  # Yellow
 #icol = (89, 0, 0, 125, 255, 255)  # Blue
 icol = (0, 0, 0, 255, 255, 255)   # Red
+
 cv2.namedWindow('colorTest')
 # Lower range colour sliders.
 cv2.createTrackbar('lowHue', 'colorTest', icol[0], 255, nothing)
@@ -20,10 +21,8 @@ cv2.createTrackbar('highHue', 'colorTest', icol[3], 255, nothing)
 cv2.createTrackbar('highSat', 'colorTest', icol[4], 255, nothing)
 cv2.createTrackbar('highVal', 'colorTest', icol[5], 255, nothing)
  
-# Raspberry pi file path example.
-#frame = cv2.imread('/home/pi/python3/opencv/color-test/colour-circles-test.jpg')
-# Windows file path example.
-frame = cv2.imread('plane.PNG')
+# Load image
+frame = cv2.imread('fedex-car.PNG')
  
 while True:
     # Get HSV values from the GUI sliders.
