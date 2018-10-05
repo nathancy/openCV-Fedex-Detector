@@ -5,13 +5,14 @@ from time import sleep
 # Class to read and process IP camera frames
 class imageDetector:
     # Initialize IP camera stream
-    def initializeStream(self):
+    def initializeThresholds(self):
         # HSV color thresholds (low, high) 
         self.colors = {
                 'purple': ([120,45,45], [150,255,255]),
                 'red': ([0,130,0], [15,255,255]) 
                 }
         self.image_name = "frame"
+    def initializeStream(self):
         self.stream = 'rtsp://admin:sagnac808@192.168.1.46:554/cam/realmonitor?channel=1&subtype=0'
         self.capture = cv2.VideoCapture(self.stream)
         cv2.namedWindow(self.image_name, 0)

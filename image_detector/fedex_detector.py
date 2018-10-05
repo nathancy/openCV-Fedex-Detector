@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 
 imageDetector = imageDetector()
+imageDetector.initializeThresholds()
 imageDetector.initializeStream()
 while(imageDetector.isOpened()):
     frame = imageDetector.getFrame()
