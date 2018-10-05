@@ -1,4 +1,5 @@
 import numpy as np
+import playsound
 import cv2
 from time import sleep
 
@@ -142,13 +143,10 @@ class imageDetector:
             return False
         # Ensure the truck is not moving (doesn't move more than a certain pixel range)
         initial_point = box1[0]
-        test_points = []
-        for num in range(50):
-            ret, frame = self.capture.read()
-            new_box = self.findBoundingBox(self.colors['purple'], frame)
-            new_point = abs(new_box[0] - initial_point)
-            test_points.append(new_point)
-        new_point = sum(test_points)/50  
+        sleep(3)
+        ret, frame = self.capture.read()
+        new_box = self.findBoundingBox(self.colors['purple'], frame)
+        new_point = abs(new_box[0] - initial_point)
         return True if new_point < 50 else False 
 
     # Show the frame to the screen
@@ -159,3 +157,8 @@ class imageDetector:
             self.capture.release()
             cv2.destroyAllWindows()
             exit(1)
+    
+    def playNotification(self):
+        for num in range(5):
+            playsound.playsound('sounds/graceful.mp3')
+
