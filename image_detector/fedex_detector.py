@@ -1,132 +1,21 @@
+from image_detector import imageDetector
 import numpy as np
 import cv2
-import mss 
-from time import sleep
 
-# HSV Values
-#purple = ([118,45,25], [154,255,255])
-purple = ([120,45,45], [150,255,255])
-red = ([0,130,0], [15,255,255])
-
-# Returns the bounding box coordinates and center coordinates of the largest contour found for a given color threshold (x,y,w,h,cX,cY)
-# If no bounding box is found, returns None
-def findBoundingBox(color, frame):
-    lower = np.array(color[0], np.uint8)
-    upper = np.array(color[1], np.uint8)
-
-    blurred = cv2.GaussianBlur(frame, (5,5), 0)
-    kernel = np.ones((5,5), np.uint8)
-    erosion = cv2.erode(blurred, kernel, iterations = 1)
-    dilation = cv2.dilate(erosion, kernel, iterations = 1)
-    frame_hsv = cv2.cvtColor(dilation, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(frame_hsv, lower, upper)
-    #cv2.imshow("images", mask)
-    #cv2.waitKey(0)
-    #return
-
-    im2, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-    contour_sizes = [(cv2.contourArea(contour), contour) for contour in contours]
-    if len(contour_sizes) > 0:
-        largest_contour = max(contour_sizes, key=lambda x: x[0])[1]
-        x,y,w,h = cv2.boundingRect(largest_contour)
-        return (x,y,w,h,(x+w/2),(y+h/2),largest_contour)
-    else:
-        return None
-
-# Given two contours, creates a single bounding box
-# Finds top left x and y coordinates, width, and height
-# 
-# (x,y)       w
-#   ._____________________.
-#   |                     |  
-#   |                     |  h
-#   |                     |  
-#   ._____________________.
-#
-def combineBoundingBox(box1, box2):
-    x = min(box1[0], box2[0])
-    y = min(box1[1], box2[1])
-    w = box2[0] + box2[2] - box1[0]
-    h = max(box1[1] + box1[3], box2[1] + box2[3]) - y
-    return (x, y, w, h)
-
-
-def showBoundingBox(x, y, w, h, frame, color):
-    detected_image = cv2.rectangle(frame, (x, y), (x + w, y + h), color,3)
-    cv2.putText(detected_image, 'Fedex', (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (100,255,100), 2)
-    showFrame(detected_image)
-    return detected_image
-
-def boxesAdjacent(box1, box2, contour1, contour2, frame):
-    x = box1[4] + box1[2]/2 + box2[2]/4
-    y = box1[5]
-    coordinate_low = (x, y - box2[3]/2)
-    coordinate_mid = (x, y)
-    coordinate_high = (x, y + box2[3]/2)
-    coordinates = [coordinate_low, coordinate_mid, coordinate_high]
-
-    #cv2.circle(frame, coordinate_mid, 2, (100,255,100),2)
-    #cv2.circle(frame, coordinate_low, 2, (100,255,100),2)
-    #cv2.circle(frame, coordinate_high, 2, (100,255,100),2)
-    cv2.circle(frame, (box1[4],box1[5]), 2, (255,255,255), 20)
-    cv2.circle(frame, (box2[4],box2[5]), 2, (0,255,0), 20)
-
-    #box1 = showBoundingBox(box1[0], box1[1], box1[2], box1[3], frame.copy(), (255,255,255))
-    #showBoundingBox(box2[0], box2[1], box2[2], box2[3], box1, (0,255,0))
-
-    shape_comparison = cv2.matchShapes(contour1, contour2, 1, 0)
-    #print(shape_comparison)
-    if shape_comparison <= 10:
-        for coordinate in coordinates:
-            if cv2.pointPolygonTest(contour2, coordinate, False) >= 0:
-                return True
-    return False
-       
-# Additional checks to ensure identification is not a false positive
-def errorChecker(box1, box2):
-    print("Possible match...")
-    # Ensure width of box is greater than a certain amount
-    if box1[2] < 30 or box2[2] < 30:
-        return False
-    # Ensure the truck is not moving (doesn't move more than a certain pixel range)
-    initial_point = box1[0]
-    sleep(5)
-    ret, frame = cap.read()
-    new_box = findBoundingBox(purple, frame)
-    new_point = abs(new_box[0] - initial_point)
-    return True if new_point < 50 else False 
-
-# Show the frame to the screen
-def showFrame(frame):
-    cv2.imshow("frame", frame)
-    key = cv2.waitKey(1)
-    if key == ord('q'):
-        cap.release()
-        cv2.destroyAllWindows()
-        exit(1)
-
-#stream = urllib.urlopen('http://spectrum:sagnacManoa@67.53.214.22:8080/++video?cameraNum=8&width=1125&height=750&78611')
-stream = 'rtsp://admin:sagnac808@192.168.1.46:554/cam/realmonitor?channel=1&subtype=0'
-cap = cv2.VideoCapture(stream)
-cv2.namedWindow("frame", 0)
-cv2.resizeWindow("frame", 1600,900)
-
-while(cap.isOpened()):
-    ret, frame = cap.read()
-    showFrame(frame)
-    box1 = findBoundingBox(purple, frame)
-    box2 = findBoundingBox(red, frame)
+imageDetector = imageDetector()
+imageDetector.initializeStream()
+while(imageDetector.isOpened()):
+    frame = imageDetector.getFrame()
+    box1 = imageDetector.findBoundingBox(imageDetector.getColorThreshold('purple'), frame)
+    box2 = imageDetector.findBoundingBox(imageDetector.getColorThreshold('red'), frame)
     if box1 and box2:
-        if boxesAdjacent(box1, box2, box1[6], box2[6], frame):
-            #box1 = showBoundingBox(box1[0], box1[1], box1[2], box1[3], frame, (288,80,36))
-            #showBoundingBox(box2[0], box2[1], box2[2], box2[3], box1, (175,150,150))
-            if errorChecker(box1,box2):
-                points = combineBoundingBox(box1, box2)
-                showBoundingBox(points[0], points[1], points[2], points[3], frame, (0,255,0))
-                print("Fedex here")
+        if imageDetector.boxesAdjacent(box1, box2, box1[6], box2[6], frame):
+            if imageDetector.errorChecker(box1,box2):
+                points = imageDetector.combineBoundingBox(box1, box2)
+                imageDetector.showBoundingBox(points[0], points[1], points[2], points[3], frame, (0,255,0))
+                print("Fedex Arrived")
                 cv2.waitKey(0)
         else:
-            showFrame(frame)
+            imageDetector.showFrame(frame)
     else:
-        showFrame(frame)
+        imageDetector.showFrame(frame)

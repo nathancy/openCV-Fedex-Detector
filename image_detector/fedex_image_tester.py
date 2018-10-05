@@ -18,7 +18,7 @@ imageDetector.initializeStream()
 box1 = imageDetector.findBoundingBox(imageDetector.getColorThreshold('purple'), frame)
 box2 = imageDetector.findBoundingBox(imageDetector.getColorThreshold('red'), frame)
 if box1 and box2:
-    points = imageDetector.combineBoundingBox(box1, box2)
-    imageDetector.showBoundingBox(points[0], points[1], points[2], points[3], frame, (0,255,0))
+    imageDetector.showBoundingBox(box1[0], box1[1], box1[2], box1[3], frame, (288,80,36))
+    imageDetector.showBoundingBox(box2[0], box2[1], box2[2], box2[3], frame, (175,150,150))
     cv2.waitKey(0)
 

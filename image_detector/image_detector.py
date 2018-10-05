@@ -4,7 +4,8 @@ from time import sleep
 
 # Class to read and process IP camera frames
 class imageDetector:
-    def __init__(self):
+    # Initialize IP camera stream
+    def initializeStream(self):
         # HSV color thresholds (low, high) 
         self.colors = {
                 'purple': ([120,45,45], [150,255,255]),
@@ -12,9 +13,6 @@ class imageDetector:
                 }
         self.image_name = "frame"
         self.stream = 'rtsp://admin:sagnac808@192.168.1.46:554/cam/realmonitor?channel=1&subtype=0'
-    
-    # Initialize IP camera stream
-    def initializeStream(self):
         self.capture = cv2.VideoCapture(self.stream)
         cv2.namedWindow(self.image_name, 0)
         cv2.resizeWindow(self.image_name, 1600,900)
@@ -140,10 +138,13 @@ class imageDetector:
             return False
         # Ensure the truck is not moving (doesn't move more than a certain pixel range)
         initial_point = box1[0]
-        sleep(5)
-        ret, frame = self.capture.read()
-        new_box = self.findBoundingBox(self.colors[purple], frame)
-        new_point = abs(new_box[0] - initial_point)
+        test_points = []
+        for num in range(50):
+            ret, frame = self.capture.read()
+            new_box = self.findBoundingBox(self.colors['purple'], frame)
+            new_point = abs(new_box[0] - initial_point)
+            test_points.append(new_point)
+        new_point = sum(test_points)/50  
         return True if new_point < 50 else False 
 
     # Show the frame to the screen
