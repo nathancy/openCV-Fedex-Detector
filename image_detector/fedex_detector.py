@@ -22,5 +22,3 @@ while(imageDetector.isOpened()):
                 print("Fedex Arrived")
         else:
             imageDetector.showFrame(frame)
-    else:
-        imageDetector.showFrame(frame)

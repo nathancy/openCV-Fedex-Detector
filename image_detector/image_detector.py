@@ -122,8 +122,8 @@ class imageDetector:
         #cv2.circle(frame, coordinate_mid, 2, (100,255,100),2)
         #cv2.circle(frame, coordinate_low, 2, (100,255,100),2)
         #cv2.circle(frame, coordinate_high, 2, (100,255,100),2)
-        cv2.circle(frame, (box1[4],box1[5]), 2, (255,255,255), 20)
-        cv2.circle(frame, (box2[4],box2[5]), 2, (0,255,0), 20)
+        cv2.circle(frame, (box1[4],box1[5]), 2, (240, 0,159), 20)
+        cv2.circle(frame, (box2[4],box2[5]), 2, (0,0,255), 20)
 
         #box1 = self.showBoundingBox(box1[0], box1[1], box1[2], box1[3], frame.copy(), (255,255,255))
         #self.showBoundingBox(box2[0], box2[1], box2[2], box2[3], box1, (0,255,0))
@@ -144,7 +144,7 @@ class imageDetector:
             return False
         # Ensure the truck is not moving (doesn't move more than a certain pixel range)
         initial_point = box1[0]
-        sleep(3)
+        #sleep(3)
         ret, frame = self.capture.read()
         new_box = self.findBoundingBox(self.colors['purple'], frame)
         new_point = abs(new_box[0] - initial_point)
