@@ -1,6 +1,7 @@
 import numpy as np
 import playsound
 import cv2
+import argparse
 from time import sleep
 
 # Class to read and process IP camera frames
@@ -13,12 +14,28 @@ class imageDetector:
                 'red': ([0,130,0], [15,255,255]) 
                 }
         self.image_name = "frame"
+        self.error_iteration_check = 5
+        self.error_pixel_movement = 50
+        self.shape_comparison_ratio = 10
+
     # Initialize IP camera stream
     def initializeStream(self):
-        self.stream = 'rtsp://admin:sagnac808@192.168.1.46:554/cam/realmonitor?channel=1&subtype=0'
+        self.stream = 'rtsp://admin:sagnac808@192.168.1.' + str(self.ip_address) + ':554/cam/realmonitor?channel=1&subtype=0'
         self.capture = cv2.VideoCapture(self.stream)
+        # Adjust resolution
         cv2.namedWindow(self.image_name, 0)
-        cv2.resizeWindow(self.image_name, 1600,900)
+        #cv2.resizeWindow(self.image_name, 1366,768)
+        #cv2.resizeWindow(self.image_name, 1600,900)
+        cv2.resizeWindow(self.image_name, 950,500)
+    
+    def getIPAddress(self):
+        self.ap = argparse.ArgumentParser()
+        self.ap.add_argument("-s", "--stream", required=False, help="Stream number IP address")
+        args = vars(self.ap.parse_args())
+        if not args['stream']:
+            self.ip_address = '46'
+        else:
+            self.ip_address = args['stream']
 
     # Check if stream is online
     def isOpened(self):
@@ -128,9 +145,11 @@ class imageDetector:
         #box1 = self.showBoundingBox(box1[0], box1[1], box1[2], box1[3], frame.copy(), (255,255,255))
         #self.showBoundingBox(box2[0], box2[1], box2[2], box2[3], box1, (0,255,0))
 
+        # Check for shape ratio. Lower value = higher chance two contours are rectangles
         shape_comparison = cv2.matchShapes(contour1, contour2, 1, 0)
-        #print(shape_comparison)
-        if shape_comparison <= 10:
+        if shape_comparison <= self.shape_comparison_ratio:
+            # Iterate through the three coordinates, cv2.pointPolygonTest returns 1 if given
+            # coordinate is within the given contour
             for coordinate in coordinates:
                 if cv2.pointPolygonTest(contour2, coordinate, False) >= 0:
                     return True
@@ -138,17 +157,33 @@ class imageDetector:
 
     # Additional checks to ensure identification is not a false positive
     def errorChecker(self, box1, box2):
-        print("Possible match...")
-        # Ensure width of box is greater than a certain amount
-        if box1[2] < 30 or box2[2] < 30:
-            return False
-        # Ensure the truck is not moving (doesn't move more than a certain pixel range)
         initial_point = box1[0]
-        #sleep(3)
-        ret, frame = self.capture.read()
-        new_box = self.findBoundingBox(self.colors['purple'], frame)
-        new_point = abs(new_box[0] - initial_point)
-        return True if new_point < 50 else False 
+        average = []
+        for num in range(self.error_iteration_check):
+            frame = self.getFrame()
+            box1 = self.findBoundingBox(self.colors['purple'], frame)
+            box2 = self.findBoundingBox(self.colors['red'], frame)
+            if box1 and box2:
+                if self.boxesAdjacent(box1, box2, box1[6], box2[6], frame):
+                    # Ensure width of box is greater than a certain amount
+                    if box1[2] < 30 or box2[2] < 30:
+                        self.showFrame(frame)
+                        print("False box width")
+                        return (False, box1, box2)
+                    else:
+                        self.showFrame(frame)
+                        average.append(box1[0])
+                else:
+                    self.showFrame(frame)
+                    print("Not adjacent")
+                    return (False,box1,box2)
+            else:
+                self.showFrame(frame)
+                print("Not valid boxes")
+                return (False,box1,box2)
+            if num == self.error_iteration_check - 1:
+                new_point = abs(sum(average)/len(average) - initial_point)
+                return (True,box1,box2) if new_point < self.error_pixel_movement else (False,box1,box2)
 
     # Show the frame to the screen
     def showFrame(self, frame):
