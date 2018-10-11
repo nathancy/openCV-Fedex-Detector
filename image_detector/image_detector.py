@@ -2,6 +2,7 @@ import numpy as np
 import playsound
 import cv2
 import argparse
+import imutils
 from time import sleep
 
 # Class to read and process IP camera frames
@@ -13,20 +14,17 @@ class imageDetector:
                 'purple': ([120,45,45], [150,255,255]),
                 'red': ([0,130,0], [15,255,255]) 
                 }
-        self.image_name = "frame"
         self.error_iteration_check = 5
         self.error_pixel_movement = 50
         self.shape_comparison_ratio = 10
 
     # Initialize IP camera stream
     def initializeStream(self):
+        self.image_name = "frame"
         self.stream = 'rtsp://admin:sagnac808@192.168.1.' + str(self.ip_address) + ':554/cam/realmonitor?channel=1&subtype=0'
         self.capture = cv2.VideoCapture(self.stream)
-        # Adjust resolution
-        cv2.namedWindow(self.image_name, 0)
-        #cv2.resizeWindow(self.image_name, 1366,768)
-        #cv2.resizeWindow(self.image_name, 1600,900)
-        cv2.resizeWindow(self.image_name, 950,500)
+        self.image_width = 900
+        self.image_height = 500
     
     def getIPAddress(self):
         self.ap = argparse.ArgumentParser()
@@ -44,6 +42,11 @@ class imageDetector:
     # Return most recent frame from stream
     def getFrame(self):
         ret, frame = self.capture.read()
+        frame = imutils.resize(frame, width=min(self.image_width, frame.shape[1]))
+        sleep(.01)
+        while not ret:
+            ret, frame = self.capture.read()
+            frame = imutils.resize(frame, width=min(self.image_width, frame.shape[1]))
         return frame
 
     # Return color threshold (low, high)
@@ -181,6 +184,7 @@ class imageDetector:
                 self.showFrame(frame)
                 print("Not valid boxes")
                 return (False,box1,box2)
+            self.showFrame(frame)
             if num == self.error_iteration_check - 1:
                 new_point = abs(sum(average)/len(average) - initial_point)
                 return (True,box1,box2) if new_point < self.error_pixel_movement else (False,box1,box2)
@@ -193,6 +197,7 @@ class imageDetector:
             self.capture.release()
             cv2.destroyAllWindows()
             exit(1)
+
     
     # Play sound notification
     def playNotification(self):
