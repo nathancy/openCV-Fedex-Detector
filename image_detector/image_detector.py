@@ -42,11 +42,10 @@ class imageDetector:
     # Return most recent frame from stream
     def getFrame(self):
         ret, frame = self.capture.read()
-        frame = imutils.resize(frame, width=min(self.image_width, frame.shape[1]))
         sleep(.01)
         while not ret:
             ret, frame = self.capture.read()
-            frame = imutils.resize(frame, width=min(self.image_width, frame.shape[1]))
+        frame = imutils.resize(frame, width=min(self.image_width, frame.shape[1]))
         return frame
 
     # Return color threshold (low, high)
