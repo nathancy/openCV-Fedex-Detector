@@ -2,6 +2,13 @@
 
 IP Camera OpenCV Fedex detector. Uses raw OpenCV, no deep learning or trained neural networks. Mainly uses color thresholding and contour detection. 
 
+## Dependencies
+```
+pip install python-opencv
+pip install numpy
+pip install playsound
+```
+
 ## Overall Algorithm 
 ```
 Initialize IP Camera stream
