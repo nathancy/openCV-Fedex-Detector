@@ -3,6 +3,7 @@ import playsound
 import cv2
 import argparse
 import imutils
+from threading import Thread
 from time import sleep
 
 # Class to read and process IP camera frames
@@ -23,6 +24,9 @@ class imageDetector:
         self.image_name = "frame"
         self.stream = 'rtsp://admin:sagnac808@192.168.1.' + str(self.ip_address) + ':554/cam/realmonitor?channel=1&subtype=0'
         self.capture = cv2.VideoCapture(self.stream)
+        (self.status, self.raw_frame) = self.capture.read()
+        self.frame = self.raw_frame
+        self.stopped = False
         self.image_width = 900
         self.image_height = 500
     
@@ -34,6 +38,9 @@ class imageDetector:
             self.ip_address = '46'
         else:
             self.ip_address = args['stream']
+    def start(self):
+        Thread(target=self.captureFrames, args=()).start()
+        return self
 
     # Check if stream is online
     def isOpened(self):
@@ -41,13 +48,18 @@ class imageDetector:
    
     # Return most recent frame from stream
     def getFrame(self):
-        ret, frame = self.capture.read()
-        sleep(.01)
-        while not ret:
-            ret, frame = self.capture.read()
-        frame = imutils.resize(frame, width=min(self.image_width, frame.shape[1]))
-        return frame
+        return self.frame
 
+    # Constantly capture frames
+    def captureFrames(self):
+        while True:
+            if self.stopped:
+                return
+            (self.status, self.raw_frame) = self.capture.read()
+            while not self.status:
+                (self.status, self.raw_frame) = self.capture.read()
+            self.frame = imutils.resize(self.raw_frame, width=min(self.image_width, self.raw_frame.shape[1]))
+    
     # Return color threshold (low, high)
     def getColorThreshold(self, color):
         return self.colors[color]

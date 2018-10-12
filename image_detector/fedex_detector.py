@@ -6,6 +6,7 @@ imageDetector = imageDetector()
 imageDetector.getIPAddress()
 imageDetector.initializeThresholds()
 imageDetector.initializeStream()
+imageDetector.start()
 while(imageDetector.isOpened()):
     frame = imageDetector.getFrame()
     box1 = imageDetector.findBoundingBox(imageDetector.getColorThreshold('purple'), frame)
