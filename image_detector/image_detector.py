@@ -15,7 +15,7 @@ class imageDetector:
                 'purple': ([120,45,45], [150,255,255]),
                 'red': ([0,130,0], [15,255,255]) 
                 }
-        self.error_iteration_check = 5
+        self.error_iteration_check = 10
         self.error_pixel_movement = 50
         self.shape_comparison_ratio = 10
 
