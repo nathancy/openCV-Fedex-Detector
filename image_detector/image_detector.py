@@ -182,18 +182,18 @@ class imageDetector:
                     # Ensure width of box is greater than a certain amount
                     if box1[2] < 30 or box2[2] < 30:
                         self.showFrame(frame)
-                        print("False box width")
+                        #print("False box width")
                         return (False, box1, box2)
                     else:
                         self.showFrame(frame)
                         average.append(box1[0])
                 else:
                     self.showFrame(frame)
-                    print("Not adjacent")
+                    #print("Not adjacent")
                     return (False,box1,box2)
             else:
                 self.showFrame(frame)
-                print("Not valid boxes")
+                #print("Not valid boxes")
                 return (False,box1,box2)
             self.showFrame(frame)
             if num == self.error_iteration_check - 1:

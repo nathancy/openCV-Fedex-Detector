@@ -13,8 +13,8 @@ while(imageDetector.isOpened()):
     box2 = imageDetector.findBoundingBox(imageDetector.getColorThreshold('red'), frame)
     if box1 and box2:
         if imageDetector.boxesAdjacent(box1, box2, box1[6], box2[6], frame):
-            print('------------------')
-            print("Entering error checker")
+            #print('------------------')
+            #print("Entering error checker")
             status,box1,box2 = imageDetector.errorChecker(box1,box2)
             if status:
                 points = imageDetector.combineBoundingBox(box1, box2)
