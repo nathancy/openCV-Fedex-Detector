@@ -15,8 +15,8 @@ class imageDetector:
                 'purple': ([120,45,45], [150,255,255]),
                 'red': ([0,130,0], [15,255,255]) 
                 }
-        self.error_iteration_check = 10
-        self.error_pixel_movement = 50
+        self.error_iteration_check = 35
+        self.error_pixel_movement = 75
         self.shape_comparison_ratio = 10
 
     # Initialize IP camera stream
@@ -209,7 +209,6 @@ class imageDetector:
             cv2.destroyAllWindows()
             exit(1)
 
-    
     # Play sound notification
     def playNotification(self):
         for num in range(5):

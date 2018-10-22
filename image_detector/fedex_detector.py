@@ -2,11 +2,15 @@ from image_detector import imageDetector
 import numpy as np
 import cv2
 
+def saveImage(frame, count):
+    cv2.imwrite("photos/" + str(count) + ".png", frame)
+
 imageDetector = imageDetector()
 imageDetector.getIPAddress()
 imageDetector.initializeThresholds()
 imageDetector.initializeStream()
 imageDetector.start()
+count = 0
 while(imageDetector.isOpened()):
     frame = imageDetector.getFrame()
     box1 = imageDetector.findBoundingBox(imageDetector.getColorThreshold('purple'), frame)
@@ -20,6 +24,8 @@ while(imageDetector.isOpened()):
                 points = imageDetector.combineBoundingBox(box1, box2)
                 imageDetector.showBoundingBox(points[0], points[1], points[2], points[3], frame, (0,255,0))
                 imageDetector.playNotification()
+                saveImage(frame, count)
+                count += 1
                 print('Fedex arrived')
         else:
             imageDetector.showFrame(frame)
