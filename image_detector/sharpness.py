@@ -1,7 +1,11 @@
-# Blur detection using the variance of Laplacian method to give a floating point
-# value to represent the 'blurryness' of an image. Convolve the input image with the
-# Laplacian operator and compute the variance. If the variance falls below a threshold,
-# mark the image as blurry
+'''
+Filename: sharpness.py
+Description: Blur detection using the variance of Laplacian method to give a floating point
+             value to represent the 'blurryness' of an image. Convolve the input image with the
+             Laplacian operator and compute the variance. If the variance falls below a threshold,
+             mark the image as blurry
+Usage: python sharpness.py
+'''
 
 from __future__ import division
 import cv2

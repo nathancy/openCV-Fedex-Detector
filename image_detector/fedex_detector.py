@@ -1,3 +1,10 @@
+'''
+Filename: fedex_detector.py
+Description: Script to capture real-time IP camera frames and detect Fedex
+             using OpenCV color thresholding and contour detection
+Usage: python fedex_detector.py -s <ip_camera #>
+'''
+
 from image_detector import imageDetector
 import numpy as np
 import cv2

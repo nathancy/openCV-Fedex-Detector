@@ -1,3 +1,9 @@
+'''
+Filename: HSV_color_detection.py
+Description: HSV color threshold calibration tool 
+Usage: python HSV_color_detection.py 
+'''
+
 from __future__ import division
 import cv2
 import numpy as np

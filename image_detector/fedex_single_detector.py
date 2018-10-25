@@ -1,3 +1,10 @@
+'''
+Filename: fedex_single_detector.py
+Description: Script to detect Fedex with a given image from disk
+             using OpenCV color thresholding and contour detection
+Usage: python fedex_single_detector.py 
+'''
+
 from image_detector import imageDetector
 import numpy as np
 import cv2
