@@ -17,7 +17,8 @@ pip install imutils
 
 ## Overall Algorithm 
 ```
-Initialize IP Camera stream
+Get camera IP address
+Initialize IP camera stream, color thresholds, start subprocess camera frame grabber
 While camera is open
     Grab frame
     Find bounding box for purple
@@ -26,10 +27,11 @@ While camera is open
         If boxes are adjacent relative to their proximity 
             If contours pass false positive checks
                 Combine bounding boxes
-                Show bounding box on frame
+                Write bounding box on original frame
                 Play sound notificaiton
-        Else show raw frame
-    Else show raw frame
+                Save image on disk
+        Else show original frame
+    Else show original frame
 ```
 
 ## Bounding Box Algorithm
@@ -46,13 +48,14 @@ Find largest contour and obtain bounding rectangle coordinates
 Return x,y,w,h,cX,cY,and largest contour
 ```
 
-## Scripts
+## Example Usage
 ### fedex_detector.py
 Script to capture real-time IP camera frames and detect Fedex using OpenCV color thresholding and contour detection.
 ```
 python fedex_detector.py -s <ip_camera #>
 ```
 
+## Utility Scripts
 ### fedex_single_detector.py
 Script to detect Fedex with a given image from disk using OpenCV color thresholding and contour detection.
 ```
