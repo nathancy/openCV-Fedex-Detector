@@ -1,3 +1,9 @@
+'''
+Filename: gimptoHSV.py
+Description: Convert Gimp HSV values into OpenCV HSV values 
+Usage: python gimptoHSV.py 
+'''
+
 colors = raw_input("GIMP HSV values\n")
 l = [int(x) for x in colors.split()]
 gimpH = l[0]

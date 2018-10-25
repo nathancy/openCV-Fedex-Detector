@@ -3,6 +3,7 @@ import playsound
 import cv2
 import argparse
 import imutils
+from threading import Thread
 from time import sleep
 
 # Class to read and process IP camera frames
@@ -14,8 +15,8 @@ class imageDetector:
                 'purple': ([120,45,45], [150,255,255]),
                 'red': ([0,130,0], [15,255,255]) 
                 }
-        self.error_iteration_check = 5
-        self.error_pixel_movement = 50
+        self.error_iteration_check = 35
+        self.error_pixel_movement = 75
         self.shape_comparison_ratio = 10
 
     # Initialize IP camera stream
@@ -23,6 +24,9 @@ class imageDetector:
         self.image_name = "frame"
         self.stream = 'rtsp://admin:sagnac808@192.168.1.' + str(self.ip_address) + ':554/cam/realmonitor?channel=1&subtype=0'
         self.capture = cv2.VideoCapture(self.stream)
+        (self.status, self.raw_frame) = self.capture.read()
+        self.frame = self.raw_frame
+        self.stopped = False
         self.image_width = 900
         self.image_height = 500
     
@@ -34,6 +38,9 @@ class imageDetector:
             self.ip_address = '46'
         else:
             self.ip_address = args['stream']
+    def start(self):
+        Thread(target=self.captureFrames, args=()).start()
+        return self
 
     # Check if stream is online
     def isOpened(self):
@@ -41,13 +48,18 @@ class imageDetector:
    
     # Return most recent frame from stream
     def getFrame(self):
-        ret, frame = self.capture.read()
-        sleep(.01)
-        while not ret:
-            ret, frame = self.capture.read()
-        frame = imutils.resize(frame, width=min(self.image_width, frame.shape[1]))
-        return frame
+        return self.frame
 
+    # Constantly capture frames
+    def captureFrames(self):
+        while True:
+            if self.stopped:
+                return
+            (self.status, self.raw_frame) = self.capture.read()
+            while not self.status:
+                (self.status, self.raw_frame) = self.capture.read()
+            self.frame = imutils.resize(self.raw_frame, width=min(self.image_width, self.raw_frame.shape[1]))
+    
     # Return color threshold (low, high)
     def getColorThreshold(self, color):
         return self.colors[color]
@@ -141,8 +153,8 @@ class imageDetector:
         #cv2.circle(frame, coordinate_mid, 2, (100,255,100),2)
         #cv2.circle(frame, coordinate_low, 2, (100,255,100),2)
         #cv2.circle(frame, coordinate_high, 2, (100,255,100),2)
-        cv2.circle(frame, (box1[4],box1[5]), 2, (240, 0,159), 20)
-        cv2.circle(frame, (box2[4],box2[5]), 2, (0,0,255), 20)
+        #cv2.circle(frame, (box1[4],box1[5]), 2, (240, 0,159), 20)
+        #cv2.circle(frame, (box2[4],box2[5]), 2, (0,0,255), 20)
 
         #box1 = self.showBoundingBox(box1[0], box1[1], box1[2], box1[3], frame.copy(), (255,255,255))
         #self.showBoundingBox(box2[0], box2[1], box2[2], box2[3], box1, (0,255,0))
@@ -170,18 +182,18 @@ class imageDetector:
                     # Ensure width of box is greater than a certain amount
                     if box1[2] < 30 or box2[2] < 30:
                         self.showFrame(frame)
-                        print("False box width")
+                        #print("False box width")
                         return (False, box1, box2)
                     else:
                         self.showFrame(frame)
                         average.append(box1[0])
                 else:
                     self.showFrame(frame)
-                    print("Not adjacent")
+                    #print("Not adjacent")
                     return (False,box1,box2)
             else:
                 self.showFrame(frame)
-                print("Not valid boxes")
+                #print("Not valid boxes")
                 return (False,box1,box2)
             self.showFrame(frame)
             if num == self.error_iteration_check - 1:
@@ -197,7 +209,6 @@ class imageDetector:
             cv2.destroyAllWindows()
             exit(1)
 
-    
     # Play sound notification
     def playNotification(self):
         for num in range(5):

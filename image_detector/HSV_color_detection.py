@@ -1,3 +1,9 @@
+'''
+Filename: HSV_color_detection.py
+Description: HSV color threshold calibration tool 
+Usage: python HSV_color_detection.py 
+'''
+
 from __future__ import division
 import cv2
 import numpy as np
@@ -6,10 +12,7 @@ def nothing(*arg):
         pass
  
 # Initial HSV GUI slider values to load on program start.
-#icol = (36, 202, 59, 71, 255, 255)    # Green
-#icol = (18, 0, 196, 36, 255, 255)  # Yellow
-#icol = (89, 0, 0, 125, 255, 255)  # Blue
-icol = (0, 0, 0, 255, 255, 255)   # Red
+icol = (0, 0, 0, 255, 255, 255)
 
 cv2.namedWindow('colorTest')
 # Lower range colour sliders.
@@ -22,7 +25,7 @@ cv2.createTrackbar('highSat', 'colorTest', icol[4], 255, nothing)
 cv2.createTrackbar('highVal', 'colorTest', icol[5], 255, nothing)
  
 # Load image
-frame = cv2.imread('fedex-car.PNG')
+frame = cv2.imread('images/fedex-car.PNG')
  
 while True:
     # Get HSV values from the GUI sliders.
@@ -37,7 +40,7 @@ while True:
     cv2.imshow('frame', frame)
     
     # Blur methods available, comment or uncomment to try different blur methods.
-    frameBGR = cv2.GaussianBlur(frame, (7, 7), 0)
+    frameBGR = cv2.GaussianBlur(frame, (7,7), 0)
     #frameBGR = cv2.medianBlur(frameBGR, 7)
     #frameBGR = cv2.bilateralFilter(frameBGR, 15 ,75, 75)
     """kernal = np.ones((15, 15), np.float32)/255
