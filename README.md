@@ -5,7 +5,6 @@ IP Camera OpenCV Fedex detector. Uses raw OpenCV, no deep learning or trained ne
 IP Camera Frame
 ![](image_detector/photos/example1.PNG)
 
-Fedex Image
 ![](image_detector/photos/example2.PNG)
 
 ## Dependencies
