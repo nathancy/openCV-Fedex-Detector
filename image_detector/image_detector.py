@@ -5,9 +5,14 @@ import argparse
 import imutils
 from threading import Thread
 from time import sleep
+import smtplib, ssl, getpass
+import time
 
 # Class to read and process IP camera frames
 class imageDetector:
+    def __init__(self):
+        self.initialize_email_connection()
+
     # Initialize color thresholds
     def initializeThresholds(self):
         # HSV color thresholds (low, high) 
@@ -211,6 +216,26 @@ class imageDetector:
 
     # Play sound notification
     def playNotification(self):
-        for num in range(5):
+        for num in range(20):
             playsound.playsound('sounds/graceful.mp3')
+
+    def initialize_email_connection(self):
+        self.port = 587
+        self.smtp_server = 'smtp.gmail.com'
+        self.sender_email = 'nathan.lam@spectrum-photonics.com'
+        self.receiver_email = 'nathan.lam@spectrum-photonics.com'
+        self.password = getpass.getpass('Email password: ')
+
+        self.session = smtplib.SMTP(self.smtp_server, self.port)
+        self.session.starttls()
+        self.session.login(self.sender_email, self.password)
+
+    def send_email(self):
+        self.current_time = time.strftime("%a, %d %b %Y %H:%M:%S")
+        self.message = """\
+        Subject: Fedex/UPS/USPS Delivery.
+
+        {}
+        Fedex arrived.""".format(self.current_time)
+        self.session.sendmail(self.sender_email, self.receiver_email, self.message)
 

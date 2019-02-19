@@ -32,6 +32,7 @@ while(imageDetector.isOpened()):
                 imageDetector.showBoundingBox(points[0], points[1], points[2], points[3], frame, (0,255,0))
                 imageDetector.playNotification()
                 saveImage(frame, count)
+                imageDetector.send_email()
                 count += 1
                 print('Fedex arrived')
         else:
