@@ -82,11 +82,11 @@ class imageDetector:
             dilation = cv2.dilate(erosion, kernel, iterations = 1)
             frame_hsv = cv2.cvtColor(dilation, cv2.COLOR_BGR2HSV)
             mask = cv2.inRange(frame_hsv, lower, upper)
-            #cv2.imshow("images", mask)
-            #cv2.waitKey(0)
+            # cv2.imshow("mask", mask)
+            # cv2.waitKey(0)
             #return
 
-            im2, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         except cv2.error:
             return None
 
@@ -127,6 +127,7 @@ class imageDetector:
         outlined_image = cv2.rectangle(frame, (x, y), (x + w, y + h), color,3)
         cv2.putText(outlined_image, 'Fedex', (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (100,255,100), 2)
         self.showFrame(outlined_image)
+        return outlined_image
     
     # Given two contours, determines if boxes are adjacent based on their relative proximity
     # Creates three points to check if the right contour has at least one point within its countour
@@ -158,12 +159,13 @@ class imageDetector:
         #cv2.circle(frame, coordinate_mid, 2, (100,255,100),2)
         #cv2.circle(frame, coordinate_low, 2, (100,255,100),2)
         #cv2.circle(frame, coordinate_high, 2, (100,255,100),2)
-        #cv2.circle(frame, (box1[4],box1[5]), 2, (240, 0,159), 20)
-        #cv2.circle(frame, (box2[4],box2[5]), 2, (0,0,255), 20)
-
-        #box1 = self.showBoundingBox(box1[0], box1[1], box1[2], box1[3], frame.copy(), (255,255,255))
-        #self.showBoundingBox(box2[0], box2[1], box2[2], box2[3], box1, (0,255,0))
-
+        cv2.circle(frame, (box1[4],box1[5]), 2, (240, 0,159), 20)
+        cv2.circle(frame, (box2[4],box2[5]), 2, (0,0,255), 20)
+        
+        box1 = self.showBoundingBox(box1[0], box1[1], box1[2], box1[3], frame.copy(), (240,0,159))
+        self.showBoundingBox(box2[0], box2[1], box2[2], box2[3], box1, (0,0,255))
+        # cv2.waitKey(0)
+        
         # Check for shape ratio. Lower value = higher chance two contours are rectangles
         shape_comparison = cv2.matchShapes(contour1, contour2, 1, 0)
         if shape_comparison <= self.shape_comparison_ratio:

@@ -15,7 +15,8 @@ import cv2
 #frame = cv2.imread('images/light-red.jpg')
 #frame = cv2.imread('images/area.PNG')
 #frame = cv2.imread('images/area.PNG')
-frame = cv2.imread('images/fedex-car.PNG')
+# frame = cv2.imread('images/fedex-car.PNG')
+frame = cv2.imread('images/plane.PNG')
 
 imageDetector = imageDetector()
 imageDetector.getIPAddress()
